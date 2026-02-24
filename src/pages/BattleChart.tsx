@@ -122,7 +122,6 @@ export default function BattleChart() {
   const [attackerId, setAttackerId] = useState<number | null>(null);
   const [defenderId, setDefenderId] = useState<number | null>(null);
   const [selectedMove, setSelectedMove] = useState<string | null>(null);
-  const [hdMode, setHdMode] = useState(false);
   const [showAnim, setShowAnim] = useState(false);
   const [showAnimeClip, setShowAnimeClip] = useState(false);
   const [showYoutubeClip, setShowYoutubeClip] = useState(false);
@@ -200,18 +199,7 @@ export default function BattleChart() {
   return (
     <div className="animate-fade-in-up">
       <h1 className="font-retro text-xl text-fire-dark mb-4">Battle Chart</h1>
-      <div className="flex items-center justify-between mb-6 gap-4">
-        <p className="text-sm text-gray-500">Pick an attacker, a defender, and a move to see the type effectiveness bonus.</p>
-        <button
-          onClick={() => setHdMode(prev => !prev)}
-          className={`flex items-center gap-2 shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            hdMode ? "bg-fire-red text-white shadow-md" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-          }`}
-        >
-          <span className={`inline-block w-2 h-2 rounded-full ${hdMode ? "bg-white animate-pulse" : "bg-gray-400"}`} />
-          HD Animation
-        </button>
-      </div>
+      <p className="text-sm text-gray-500 mb-6">Pick an attacker, a defender, and a move to see the type effectiveness bonus.</p>
 
       {/* Pokemon selectors */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6 items-stretch">
@@ -430,14 +418,12 @@ export default function BattleChart() {
                     <span>Play YouTube Clip</span>
                   </button>
                 )}
-                {hdMode && (
-                  <button
-                    onClick={() => setShowAnim(true)}
-                    className="px-5 py-2 bg-gradient-to-r from-fire-red to-fire-orange text-white rounded-full text-xs font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                  >
-                    ▶ Play HD Battle Animation
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowAnim(true)}
+                  className="px-5 py-2 bg-gradient-to-r from-fire-red to-fire-orange text-white rounded-full text-xs font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                >
+                  ▶ Play HD Battle Animation
+                </button>
               </div>
             </div>
           </div>
