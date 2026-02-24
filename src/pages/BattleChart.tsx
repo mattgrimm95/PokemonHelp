@@ -73,8 +73,8 @@ function PokemonPicker({ label, selectedId, onSelect, onClear, pokemon }: Picker
       )}
 
       {open && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setOpen(false); setSearch(""); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 pt-[15vh]" onClick={() => { setOpen(false); setSearch(""); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[75vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-4 border-b shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-retro text-xs text-fire-dark">Choose {label}</h2>
@@ -89,7 +89,7 @@ function PokemonPicker({ label, selectedId, onSelect, onClear, pokemon }: Picker
                 autoFocus
               />
             </div>
-            <div className="overflow-y-auto flex-1 p-3">
+            <div className="overflow-y-auto flex-1 min-h-0 p-3">
               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1">
                 {filtered.map(p => (
                   <button
@@ -494,6 +494,8 @@ export default function BattleChart() {
             <YoutubeClipModal
               videoId={combo.youtubeVideoId}
               onClose={() => setShowYoutubeClip(false)}
+              startSeconds={combo.youtubeStartSeconds}
+              endSeconds={combo.youtubeEndSeconds}
             />
           );
         })()}
