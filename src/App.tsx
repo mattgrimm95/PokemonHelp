@@ -10,6 +10,7 @@ import TeamBuilder from "./pages/TeamBuilder";
 import TypeChart from "./pages/TypeChart";
 import WhosThatPokemon from "./pages/WhosThatPokemon";
 import EvolutionExplorer from "./pages/EvolutionExplorer";
+import BattleChart from "./pages/BattleChart";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/type-chart" element={<TypeChart />} />
           <Route path="/whos-that-pokemon" element={<WhosThatPokemon />} />
           <Route path="/evolution" element={<EvolutionExplorer />} />
+          <Route path="/battle-chart" element={<BattleChart />} />
         </Route>
       </Routes>
     </ErrorBoundary>

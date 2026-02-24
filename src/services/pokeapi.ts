@@ -140,6 +140,13 @@ export interface MoveData {
   effect_entries: { short_effect: string; language: { name: string } }[];
 }
 
+export interface AbilityData {
+  id: number;
+  name: string;
+  effect_entries: { effect: string; short_effect: string; language: { name: string } }[];
+  flavor_text_entries: { flavor_text: string; language: { name: string }; version_group: { name: string } }[];
+}
+
 export const api = {
   getPokemon: (idOrName: number | string) =>
     fetchJson<PokemonData>(`${BASE}/pokemon/${idOrName}`),
@@ -161,6 +168,9 @@ export const api = {
 
   getMove: (nameOrId: string | number) =>
     fetchJson<MoveData>(`${BASE}/move/${nameOrId}`),
+
+  getAbility: (nameOrId: string | number) =>
+    fetchJson<AbilityData>(`${BASE}/ability/${nameOrId}`),
 };
 
 export function getOfficialArtwork(id: number): string {

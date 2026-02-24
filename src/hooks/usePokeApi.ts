@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, type PokemonData, type SpeciesData, type EncounterData, type EvolutionChainData, type LocationAreaData, type LocationData, type MoveData } from "../services/pokeapi";
+import { api, type PokemonData, type SpeciesData, type EncounterData, type EvolutionChainData, type LocationAreaData, type LocationData, type MoveData, type AbilityData } from "../services/pokeapi";
 
 const STALE_TIME = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -63,6 +63,15 @@ export function useMove(nameOrId: string | number) {
     queryFn: () => api.getMove(nameOrId),
     staleTime: STALE_TIME,
     enabled: !!nameOrId,
+  });
+}
+
+export function useAbility(name: string | null) {
+  return useQuery<AbilityData>({
+    queryKey: ["ability", name],
+    queryFn: () => api.getAbility(name!),
+    staleTime: STALE_TIME,
+    enabled: !!name,
   });
 }
 

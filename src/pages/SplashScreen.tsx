@@ -8,6 +8,7 @@ const FEATURES = [
   { to: "/type-chart", label: "Type Chart", icon: "🎯", desc: "What beats what?", color: "from-purple-500 to-pink-500" },
   { to: "/whos-that-pokemon", label: "Who's That Pokémon?", icon: "❓", desc: "Test your knowledge!", color: "from-yellow-500 to-amber-500" },
   { to: "/evolution", label: "Evolution Explorer", icon: "🔄", desc: "See how Pokémon evolve", color: "from-cyan-500 to-blue-500" },
+  { to: "/battle-chart", label: "Battle Chart", icon: "💥", desc: "Check move effectiveness", color: "from-rose-500 to-red-500" },
 ];
 
 const STARTER_IDS = [6, 3, 9];
@@ -73,7 +74,7 @@ export default function SplashScreen() {
           ))}
         </div>
 
-        <div className={`grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl w-full transition-all duration-1000 delay-500 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-4xl w-full transition-all duration-1000 delay-500 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
           {FEATURES.map((f, i) => (
             <Link
               key={f.to}

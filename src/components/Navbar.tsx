@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: "/type-chart", label: "Types", icon: "🎯" },
   { to: "/whos-that-pokemon", label: "Quiz", icon: "❓" },
   { to: "/evolution", label: "Evolution", icon: "🔄" },
+  { to: "/battle-chart", label: "Battle", icon: "💥" },
 ];
 
 export default function Navbar() {

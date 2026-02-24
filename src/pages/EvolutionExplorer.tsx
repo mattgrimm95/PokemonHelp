@@ -126,6 +126,7 @@ export default function EvolutionExplorer() {
                         )}
                         <Link
                           to={`/pokedex/${node.id}`}
+                          state={{ from: "evolution" }}
                           className="flex flex-col items-center group shrink-0"
                         >
                           <img

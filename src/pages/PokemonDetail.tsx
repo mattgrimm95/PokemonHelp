@@ -1,12 +1,28 @@
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { usePokemon, useSpecies, useEncounters, useEvolutionChain } from "../hooks/usePokeApi";
-import { getOfficialArtwork, formatName, extractIdFromUrl, getSprite } from "../services/pokeapi";
+import { api, getOfficialArtwork, formatName, extractIdFromUrl, getSprite, type AbilityData } from "../services/pokeapi";
 import StatBar from "../components/StatBar";
 import TypeBadge from "../components/TypeBadge";
+
+function toFeetInches(meters: number): string {
+  const totalInches = meters * 39.3701;
+  const feet = Math.floor(totalInches / 12);
+  const inches = Math.round(totalInches % 12);
+  return `${feet}'${String(inches).padStart(2, "0")}"`;
+}
+
+function toLbs(kg: number): string {
+  return `${(kg * 2.20462).toFixed(1)} lbs`;
+}
 
 export default function PokemonDetail() {
   const { id } = useParams<{ id: string }>();
   const numId = Number(id);
+  const location = useLocation();
+  const cameFromEvolution = (location.state as { from?: string } | null)?.from === "evolution";
+  const [expandedAbility, setExpandedAbility] = useState<string | null>(null);
 
   const { data: pokemon, isLoading: loadingPoke } = usePokemon(numId);
   const { data: species, isLoading: loadingSpecies } = useSpecies(numId);
@@ -51,14 +67,22 @@ export default function PokemonDetail() {
     .sort((a, b) => a.details.level_learned_at - b.details.level_learned_at);
 
   const bst = pokemon.stats.reduce((sum, s) => sum + s.base_stat, 0);
+  const heightM = pokemon.height / 10;
+  const weightKg = pokemon.weight / 10;
 
   return (
     <div className="animate-fade-in-up">
-      {/* Navigation */}
       <div className="flex items-center justify-between mb-4">
-        <Link to="/pokedex" className="text-fire-red hover:text-fire-dark text-sm font-medium">
-          ← Back to Pokédex
-        </Link>
+        <div className="flex gap-3">
+          <Link to="/pokedex" className="text-fire-red hover:text-fire-dark text-sm font-medium">
+            ← Pokédex
+          </Link>
+          {cameFromEvolution && (
+            <Link to="/evolution" className="text-cyan-600 hover:text-cyan-800 text-sm font-medium">
+              ← Evolution Explorer
+            </Link>
+          )}
+        </div>
         <div className="flex gap-2">
           {numId > 1 && (
             <Link to={`/pokedex/${numId - 1}`} className="px-3 py-1 bg-white rounded-lg shadow text-sm hover:shadow-md transition-shadow">
@@ -74,7 +98,6 @@ export default function PokemonDetail() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-br from-fire-red to-fire-orange p-6 text-white">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <img
@@ -96,7 +119,6 @@ export default function PokemonDetail() {
         </div>
 
         <div className="p-6 grid md:grid-cols-2 gap-6">
-          {/* Description */}
           <div>
             <h2 className="font-retro text-xs text-fire-dark mb-3">Description</h2>
             <p className="text-gray-700 text-sm leading-relaxed mb-4">
@@ -106,11 +128,13 @@ export default function PokemonDetail() {
             <div className="grid grid-cols-3 gap-3 text-center mb-4">
               <div className="bg-gray-50 rounded-lg p-2">
                 <p className="text-xs text-gray-500">Height</p>
-                <p className="font-bold text-sm">{(pokemon.height / 10).toFixed(1)}m</p>
+                <p className="font-bold text-sm">{toFeetInches(heightM)}</p>
+                <p className="text-[10px] text-gray-400">{heightM.toFixed(1)}m</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-2">
                 <p className="text-xs text-gray-500">Weight</p>
-                <p className="font-bold text-sm">{(pokemon.weight / 10).toFixed(1)}kg</p>
+                <p className="font-bold text-sm">{toLbs(weightKg)}</p>
+                <p className="text-[10px] text-gray-400">{weightKg.toFixed(1)}kg</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-2">
                 <p className="text-xs text-gray-500">Base Exp</p>
@@ -118,17 +142,20 @@ export default function PokemonDetail() {
               </div>
             </div>
 
-            <h3 className="font-semibold text-sm text-gray-800 mb-2">Abilities</h3>
-            <div className="flex flex-wrap gap-2 mb-4">
+            <h3 className="font-semibold text-sm text-gray-800 mb-2">Abilities <span className="text-xs text-gray-400 font-normal">(click for details)</span></h3>
+            <div className="space-y-2 mb-4">
               {pokemon.abilities.map(a => (
-                <span key={a.ability.name} className={`px-3 py-1 rounded-full text-xs font-medium ${a.is_hidden ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-700"}`}>
-                  {formatName(a.ability.name)}{a.is_hidden ? " (Hidden)" : ""}
-                </span>
+                <AbilityButton
+                  key={a.ability.name}
+                  name={a.ability.name}
+                  isHidden={a.is_hidden}
+                  expanded={expandedAbility === a.ability.name}
+                  onToggle={() => setExpandedAbility(expandedAbility === a.ability.name ? null : a.ability.name)}
+                />
               ))}
             </div>
           </div>
 
-          {/* Stats */}
           <div>
             <h2 className="font-retro text-xs text-fire-dark mb-3">Base Stats</h2>
             <div className="space-y-2 mb-2">
@@ -139,7 +166,6 @@ export default function PokemonDetail() {
             <p className="text-right text-sm font-bold text-gray-600">Total: {bst}</p>
           </div>
 
-          {/* Encounters */}
           {frlgEncounters.length > 0 && (
             <div>
               <h2 className="font-retro text-xs text-fire-dark mb-3">Where to Find (FRLG)</h2>
@@ -160,7 +186,6 @@ export default function PokemonDetail() {
             </div>
           )}
 
-          {/* Evolution Chain */}
           {evoChain && (
             <div>
               <h2 className="font-retro text-xs text-fire-dark mb-3">Evolution Chain</h2>
@@ -168,7 +193,6 @@ export default function PokemonDetail() {
             </div>
           )}
 
-          {/* Moves (collapsible) */}
           <div className="md:col-span-2">
             <details>
               <summary className="font-retro text-xs text-fire-dark mb-3 cursor-pointer">
@@ -190,6 +214,43 @@ export default function PokemonDetail() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AbilityButton({ name, isHidden, expanded, onToggle }: { name: string; isHidden: boolean; expanded: boolean; onToggle: () => void }) {
+  const { data: ability, isLoading } = useQuery<AbilityData>({
+    queryKey: ["ability", name],
+    queryFn: () => api.getAbility(name),
+    staleTime: 24 * 60 * 60 * 1000,
+    enabled: expanded,
+  });
+
+  const effectText = ability?.effect_entries.find(e => e.language.name === "en")?.short_effect
+    ?? ability?.flavor_text_entries.find(e => e.language.name === "en")?.flavor_text;
+
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center justify-between gap-2 ${
+          isHidden ? "bg-purple-100 text-purple-700 hover:bg-purple-200" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        } ${expanded ? "ring-2 ring-fire-red/30" : ""}`}
+      >
+        <span>{formatName(name)}{isHidden ? " (Hidden)" : ""}</span>
+        <span className={`transition-transform ${expanded ? "rotate-180" : ""}`}>▾</span>
+      </button>
+      {expanded && (
+        <div className="mt-1 px-3 py-2 bg-gray-50 rounded-lg text-xs text-gray-600 border border-gray-100 animate-fade-in-up">
+          {isLoading ? (
+            <div className="skeleton h-4 w-3/4" />
+          ) : effectText ? (
+            <p>{effectText}</p>
+          ) : (
+            <p className="text-gray-400 italic">No description available.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

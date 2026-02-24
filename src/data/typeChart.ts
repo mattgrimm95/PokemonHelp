@@ -1,7 +1,7 @@
 export const TYPES = [
   "normal", "fire", "water", "electric", "grass", "ice",
   "fighting", "poison", "ground", "flying", "psychic", "bug",
-  "rock", "ghost", "dragon", "dark", "steel",
+  "rock", "ghost", "dragon", "dark", "steel", "fairy",
 ] as const;
 
 export type PokemonType = (typeof TYPES)[number];
@@ -24,6 +24,7 @@ export const TYPE_COLORS: Record<PokemonType, string> = {
   dragon:   "#7038F8",
   dark:     "#705848",
   steel:    "#B8B8D0",
+  fairy:    "#EE99AC",
 };
 
 // Gen III effectiveness matrix: EFFECTIVENESS[attacking][defending]
@@ -93,7 +94,12 @@ function buildMatrix(): Matrix {
   set("dark","dark",0.5); set("dark","steel",0.5);
   // Steel
   set("steel","fire",0.5); set("steel","water",0.5); set("steel","electric",0.5);
-  set("steel","ice",2); set("steel","rock",2); set("steel","steel",0.5);
+  set("steel","ice",2); set("steel","rock",2); set("steel","steel",0.5); set("steel","fairy",2);
+  // Fairy (PokeAPI returns modern typings for Pokemon like Clefairy, Jigglypuff, Mr. Mime)
+  set("fairy","fire",0.5); set("fairy","poison",0.5); set("fairy","steel",0.5);
+  set("fairy","fighting",2); set("fairy","dragon",2); set("fairy","dark",2);
+  // Defensive interactions with Fairy
+  set("poison","fairy",2); set("dragon","fairy",0);
 
   return m as Matrix;
 }

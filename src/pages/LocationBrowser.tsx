@@ -60,13 +60,13 @@ export default function LocationBrowser() {
             to={`/locations/${loc.id}`}
             className="group bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden border border-gray-100 p-4"
           >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{CATEGORY_ICONS[loc.category]}</span>
-              <div>
+            <div className="flex items-start gap-3">
+              <span className="text-2xl mt-0.5">{CATEGORY_ICONS[loc.category]}</span>
+              <div className="min-w-0">
                 <h3 className="font-bold text-sm text-gray-800 group-hover:text-fire-red transition-colors">
                   {loc.displayName}
                 </h3>
-                <p className="text-xs text-gray-400 capitalize">{loc.category}</p>
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{loc.description}</p>
               </div>
             </div>
           </Link>

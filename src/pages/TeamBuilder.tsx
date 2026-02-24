@@ -105,17 +105,17 @@ export default function TeamBuilder() {
   }, []);
 
   const filteredPokemon = useMemo(() => {
-    if (!search) return KANTO_DEX.slice(0, 30);
+    if (!search) return KANTO_DEX;
+    const q = search.toLowerCase();
     return KANTO_DEX.filter(p =>
-      p.name.includes(search.toLowerCase()) || String(p.id).includes(search)
-    ).slice(0, 30);
+      p.name.includes(q) || String(p.id).includes(q)
+    );
   }, [search]);
 
   return (
     <div className="animate-fade-in-up">
       <h1 className="font-retro text-xl text-fire-dark mb-4">Team Builder</h1>
 
-      {/* Team slots */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
         {team.map((slot, idx) => (
           <div key={idx} className="relative">
@@ -157,34 +157,42 @@ export default function TeamBuilder() {
         ))}
       </div>
 
-      {/* Pokemon picker modal */}
       {editingSlot !== null && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setEditingSlot(null); setSearch(""); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="p-4 border-b">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-retro text-xs text-fire-dark">Choose Pokémon</h2>
-                <button onClick={() => { setEditingSlot(null); setSearch(""); }} className="text-gray-400 hover:text-gray-600">✕</button>
+                <button onClick={() => { setEditingSlot(null); setSearch(""); }} className="text-gray-400 hover:text-gray-600 text-lg">✕</button>
               </div>
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search by name or number..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-fire-red/30"
+                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-fire-red/30"
                 autoFocus
               />
+              <p className="text-xs text-gray-400 mt-2">{filteredPokemon.length} Pokémon</p>
             </div>
-            <div className="overflow-y-auto max-h-[60vh] p-2">
-              <div className="grid grid-cols-3 gap-2">
+            <div className="overflow-y-auto flex-1 p-3">
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1">
                 {filteredPokemon.map(p => (
                   <button
                     key={p.id}
                     onClick={() => setPokemon(editingSlot, p.id)}
-                    className="flex flex-col items-center p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex flex-col items-center p-1.5 rounded-lg hover:bg-fire-red/10 transition-colors group"
                   >
-                    <img src={getSprite(p.id)} alt="" className="w-12 h-12 object-contain" style={{ imageRendering: "pixelated" }} />
-                    <span className="text-xs font-medium mt-1">{formatName(p.name)}</span>
+                    <img
+                      src={getSprite(p.id)}
+                      alt=""
+                      className="w-12 h-12 object-contain group-hover:scale-110 transition-transform"
+                      style={{ imageRendering: "pixelated" }}
+                      loading="lazy"
+                    />
+                    <span className="text-[10px] font-medium mt-0.5 text-gray-700 truncate w-full text-center">
+                      {formatName(p.name)}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -193,10 +201,8 @@ export default function TeamBuilder() {
         </div>
       )}
 
-      {/* Team Analysis */}
       {filledIds.length > 0 && pokemonDataMap && (
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Defensive analysis */}
           <div className="bg-white rounded-xl shadow-md p-4">
             <h2 className="font-retro text-xs text-fire-dark mb-3">Team Weaknesses</h2>
             {defensiveAnalysis && (
@@ -223,7 +229,6 @@ export default function TeamBuilder() {
             )}
           </div>
 
-          {/* Stat summary */}
           <div className="bg-white rounded-xl shadow-md p-4">
             <h2 className="font-retro text-xs text-fire-dark mb-3">Team Stats Average</h2>
             {teamBst && (
@@ -245,7 +250,6 @@ export default function TeamBuilder() {
             </p>
           </div>
 
-          {/* Type coverage overview */}
           <div className="bg-white rounded-xl shadow-md p-4 md:col-span-2">
             <h2 className="font-retro text-xs text-fire-dark mb-3">Offensive Type Coverage</h2>
             <p className="text-xs text-gray-500 mb-3">

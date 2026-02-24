@@ -88,3 +88,86 @@ body {
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
 }
+
+/* Battle Chart animations */
+@keyframes battle-lunge {
+  0%, 100% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(12px) scale(1.08); }
+}
+
+@keyframes battle-fly {
+  0%   { left: 8%;  opacity: 0; transform: translateY(-50%) scale(0.3); }
+  12%  { opacity: 1; transform: translateY(-50%) scale(1.2); }
+  88%  { opacity: 0.8; transform: translateY(-50%) scale(1); }
+  100% { left: 85%; opacity: 0; transform: translateY(-50%) scale(0.2); }
+}
+
+@keyframes battle-shake {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  20% { transform: translateX(-6px); filter: brightness(2); }
+  40% { transform: translateX(5px); filter: brightness(1); }
+  60% { transform: translateX(-3px); filter: brightness(1.5); }
+  80% { transform: translateX(2px); filter: brightness(1); }
+}
+
+@keyframes battle-impact {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
+}
+
+@keyframes result-pop {
+  0%   { opacity: 0; transform: scale(0.7) translateY(8px); }
+  70%  { transform: scale(1.06) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.battle-lunge {
+  animation: battle-lunge 0.4s ease-out;
+}
+
+.battle-fly {
+  position: absolute;
+  top: 38%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--move-color);
+  box-shadow: 0 0 10px var(--move-color), 0 0 22px var(--move-color);
+  animation: battle-fly 0.5s ease-in-out 0.15s both;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.battle-fly::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 28px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to left, var(--move-color), transparent);
+  transform: translateY(-50%);
+  opacity: 0.7;
+}
+
+.battle-shake {
+  animation: battle-shake 0.35s ease-in-out 0.55s;
+}
+
+.battle-impact {
+  position: absolute;
+  right: 14%;
+  top: 38%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--move-color), transparent 70%);
+  animation: battle-impact 0.3s ease-out 0.55s both;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.result-pop {
+  animation: result-pop 0.35s ease-out 0.75s both;
+}
