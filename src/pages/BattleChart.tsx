@@ -2,8 +2,18 @@ import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { KANTO_DEX } from "../data/frlg-pokemon";
 import { EFFECTIVENESS, TYPE_COLORS, type PokemonType } from "../data/typeChart";
+import {
+  getAnimeClipCombo,
+  getAnimeClipMovesForPokemon,
+  getYoutubeMovesForPokemon,
+  hasAnimeClip,
+  hasYoutubeClip,
+} from "../data/anime-clips";
 import { api, formatName, getSprite, getOfficialArtwork, type PokemonData, type MoveData } from "../services/pokeapi";
 import TypeBadge from "../components/TypeBadge";
+import BattleAnimation from "../components/BattleAnimation";
+import AnimeClipAnimation from "../components/AnimeClipAnimation";
+import YoutubeClipModal from "../components/YoutubeClipModal";
 
 interface PickerProps {
   label: string;
@@ -112,6 +122,10 @@ export default function BattleChart() {
   const [attackerId, setAttackerId] = useState<number | null>(null);
   const [defenderId, setDefenderId] = useState<number | null>(null);
   const [selectedMove, setSelectedMove] = useState<string | null>(null);
+  const [hdMode, setHdMode] = useState(false);
+  const [showAnim, setShowAnim] = useState(false);
+  const [showAnimeClip, setShowAnimeClip] = useState(false);
+  const [showYoutubeClip, setShowYoutubeClip] = useState(false);
 
   const { data: attacker } = useQuery<PokemonData>({
     queryKey: ["pokemon", attackerId],
@@ -142,8 +156,19 @@ export default function BattleChart() {
       .sort((a, b) => a.localeCompare(b));
   }, [attacker]);
 
-  const clearAttacker = useCallback(() => { setAttackerId(null); setSelectedMove(null); }, []);
-  const clearDefender = useCallback(() => { setDefenderId(null); }, []);
+  const clearAttacker = useCallback(() => {
+    setAttackerId(null);
+    setSelectedMove(null);
+    setShowAnim(false);
+    setShowAnimeClip(false);
+    setShowYoutubeClip(false);
+  }, []);
+  const clearDefender = useCallback(() => {
+    setDefenderId(null);
+    setShowAnim(false);
+    setShowAnimeClip(false);
+    setShowYoutubeClip(false);
+  }, []);
 
   const result = useMemo(() => {
     if (!moveData || !defender) return null;
@@ -175,14 +200,31 @@ export default function BattleChart() {
   return (
     <div className="animate-fade-in-up">
       <h1 className="font-retro text-xl text-fire-dark mb-4">Battle Chart</h1>
-      <p className="text-sm text-gray-500 mb-6">Pick an attacker, a defender, and a move to see the type effectiveness bonus.</p>
+      <div className="flex items-center justify-between mb-6 gap-4">
+        <p className="text-sm text-gray-500">Pick an attacker, a defender, and a move to see the type effectiveness bonus.</p>
+        <button
+          onClick={() => setHdMode(prev => !prev)}
+          className={`flex items-center gap-2 shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            hdMode ? "bg-fire-red text-white shadow-md" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+          }`}
+        >
+          <span className={`inline-block w-2 h-2 rounded-full ${hdMode ? "bg-white animate-pulse" : "bg-gray-400"}`} />
+          HD Animation
+        </button>
+      </div>
 
       {/* Pokemon selectors */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6 items-stretch">
         <PokemonPicker
           label="Attacker"
           selectedId={attackerId}
-          onSelect={id => { setAttackerId(id); setSelectedMove(null); }}
+          onSelect={id => {
+            setAttackerId(id);
+            setSelectedMove(null);
+            setShowAnim(false);
+            setShowAnimeClip(false);
+            setShowYoutubeClip(false);
+          }}
           onClear={clearAttacker}
           pokemon={attacker}
         />
@@ -192,7 +234,12 @@ export default function BattleChart() {
         <PokemonPicker
           label="Defender"
           selectedId={defenderId}
-          onSelect={setDefenderId}
+          onSelect={id => {
+            setDefenderId(id);
+            setShowAnim(false);
+            setShowAnimeClip(false);
+            setShowYoutubeClip(false);
+          }}
           onClear={clearDefender}
           pokemon={defender}
         />
@@ -207,7 +254,12 @@ export default function BattleChart() {
           <div className="relative">
             <select
               value={selectedMove ?? ""}
-              onChange={e => setSelectedMove(e.target.value || null)}
+              onChange={e => {
+                setSelectedMove(e.target.value || null);
+                setShowAnim(false);
+                setShowAnimeClip(false);
+                setShowYoutubeClip(false);
+              }}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-fire-red/30 focus:border-fire-red transition-all text-sm appearance-none"
             >
               <option value="">-- Choose a move --</option>
@@ -218,6 +270,20 @@ export default function BattleChart() {
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▾</div>
           </div>
 
+          {attackerId !== null && (() => {
+            const clipMoves = getAnimeClipMovesForPokemon(attackerId);
+            if (clipMoves.length === 0) return null;
+            return (
+              <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-2">
+                <span className="text-base" title="Anime clip available">🎬</span>
+                <span>
+                  Anime clip available for:{" "}
+                  <strong>{clipMoves.map(m => formatName(m)).join(", ")}</strong>
+                </span>
+              </p>
+            );
+          })()}
+
           {moveData && (
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <TypeBadge type={moveData.type.name} size="md" />
@@ -227,6 +293,39 @@ export default function BattleChart() {
               <span className="text-xs text-gray-500">PP: {moveData.pp}</span>
             </div>
           )}
+          {attackerId !== null && (() => {
+            const ytMoves = getYoutubeMovesForPokemon(attackerId);
+            if (ytMoves.length === 0) return null;
+            return (
+              <p className="mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center gap-2">
+                <span className="text-base" title="YouTube clip available">▶️</span>
+                <span>
+                  YouTube clip available for:{" "}
+                  <strong>{ytMoves.map(m => formatName(m)).join(", ")}</strong>
+                </span>
+              </p>
+            );
+          })()}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {moveData && attackerId !== null && selectedMove && hasAnimeClip(attackerId, selectedMove) && (
+              <button
+                onClick={() => setShowAnimeClip(true)}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs font-bold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2 border-2 border-violet-400/50"
+              >
+                <span>🎬</span>
+                <span>Play Anime Clip</span>
+              </button>
+            )}
+            {moveData && attackerId !== null && selectedMove && hasYoutubeClip(attackerId, selectedMove) && (
+              <button
+                onClick={() => setShowYoutubeClip(true)}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-bold shadow-md hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2 border-2 border-red-400/50"
+              >
+                <span>▶️</span>
+                <span>Play YouTube Clip</span>
+              </button>
+            )}
+          </div>
           {moveLoading && <div className="skeleton h-6 w-40 mt-3" />}
         </div>
       )}
@@ -246,6 +345,22 @@ export default function BattleChart() {
             }`}
             style={{ "--move-color": TYPE_COLORS[result.moveType] || "#888" } as React.CSSProperties}
           >
+            {attackerId !== null && selectedMove && (hasAnimeClip(attackerId, selectedMove) || hasYoutubeClip(attackerId, selectedMove)) && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+                {hasAnimeClip(attackerId, selectedMove) && (
+                  <div className="px-3 py-1 rounded-full bg-violet-500/90 text-white text-[10px] font-bold shadow-md flex items-center gap-1.5">
+                    <span>🎬</span>
+                    <span>Anime clip</span>
+                  </div>
+                )}
+                {hasYoutubeClip(attackerId, selectedMove) && (
+                  <div className="px-3 py-1 rounded-full bg-red-600/90 text-white text-[10px] font-bold shadow-md flex items-center gap-1.5">
+                    <span>▶️</span>
+                    <span>YouTube clip</span>
+                  </div>
+                )}
+              </div>
+            )}
             {/* Projectile that flies attacker → defender */}
             <div className="battle-fly" />
             {/* Impact burst at defender */}
@@ -295,6 +410,35 @@ export default function BattleChart() {
                   Effective multiplier with STAB: <span className="font-bold">{result.multiplier * 1.5}×</span>
                 </p>
               )}
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                {attackerId !== null && selectedMove && hasAnimeClip(attackerId, selectedMove) && (
+                  <button
+                    onClick={() => setShowAnimeClip(true)}
+                    className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-full text-xs font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2 border-2 border-violet-400/50"
+                  >
+                    <span>🎬</span>
+                    <span>Play Anime Clip</span>
+                  </button>
+                )}
+                {attackerId !== null && selectedMove && hasYoutubeClip(attackerId, selectedMove) && (
+                  <button
+                    onClick={() => setShowYoutubeClip(true)}
+                    className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-full text-xs font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2 border-2 border-red-400/50"
+                  >
+                    <span>▶️</span>
+                    <span>Play YouTube Clip</span>
+                  </button>
+                )}
+                {hdMode && (
+                  <button
+                    onClick={() => setShowAnim(true)}
+                    className="px-5 py-2 bg-gradient-to-r from-fire-red to-fire-orange text-white rounded-full text-xs font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                  >
+                    ▶ Play HD Battle Animation
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -317,6 +461,56 @@ export default function BattleChart() {
           <p className="font-retro text-xs">Select an Attacker and Defender to get started!</p>
         </div>
       )}
+
+      {showAnim && result && attackerId !== null && defenderId !== null && attacker && defender && moveData && (
+        <BattleAnimation
+          attackerId={attackerId}
+          attackerName={attacker.name}
+          defenderId={defenderId}
+          defenderName={defender.name}
+          moveType={result.moveType}
+          moveName={moveData.name}
+          effectiveness={result.multiplier}
+          onClose={() => setShowAnim(false)}
+        />
+      )}
+
+      {showAnimeClip &&
+        attackerId !== null &&
+        selectedMove &&
+        attacker &&
+        moveData &&
+        (() => {
+          const combo = getAnimeClipCombo(attackerId, selectedMove);
+          if (!combo) return null;
+          return (
+            <AnimeClipAnimation
+              clipId={combo.clipId}
+              attackerId={attackerId}
+              attackerName={attacker.name}
+              defenderId={combo.defenderId}
+              defenderName={combo.defenderName}
+              moveType={moveData.type.name as PokemonType}
+              moveName={moveData.name}
+              effectiveness={combo.effectiveness}
+              onClose={() => setShowAnimeClip(false)}
+            />
+          );
+        })()}
+
+      {showYoutubeClip &&
+        attackerId !== null &&
+        selectedMove &&
+        (() => {
+          const combo = getAnimeClipCombo(attackerId, selectedMove);
+          if (!combo?.youtubeVideoId) return null;
+          return (
+            <YoutubeClipModal
+              videoId={combo.youtubeVideoId}
+              onClose={() => setShowYoutubeClip(false)}
+            />
+          );
+        })()}
     </div>
   );
 }
