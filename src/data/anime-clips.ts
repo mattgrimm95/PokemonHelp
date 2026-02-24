@@ -87,6 +87,26 @@ export const ANIME_CLIP_COMBOS: AnimeClipCombo[] = [
     youtubeStartSeconds: 0,
     youtubeEndSeconds: 13,
   },
+  // 7. Bulbasaur – Solar Beam. Video: "Bulbasaur Learns The Attack Solarbeam". Transcript: "solar beam Bulbasaur's strongest attack... Bulbasaur get ready to use your solar beam fire the solar beam". Clip 0–33s.
+  {
+    pokemonId: 1,
+    moveName: "solar-beam",
+    clipId: "bulbasaur-solar-beam",
+    ...DEF,
+    youtubeVideoId: "c802ropErhM",
+    youtubeStartSeconds: 0,
+    youtubeEndSeconds: 33,
+  },
+  // 8. Charmander – Ember. Video: "Pokemon Fight Charmander used EMBER" (Short). Title + description: "Charmander used EMBER to Koffing!". Clip 0–10s.
+  {
+    pokemonId: 4,
+    moveName: "ember",
+    clipId: "charmander-ember",
+    ...DEF,
+    youtubeVideoId: "lwhivF85VCE",
+    youtubeStartSeconds: 0,
+    youtubeEndSeconds: 10,
+  },
 ];
 
 const COMBO_KEY = (pid: number, move: string) => `${pid}-${move.toLowerCase()}`;
